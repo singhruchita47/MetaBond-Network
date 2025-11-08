@@ -1,19 +1,4 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
-
-/**
- * @title MetaBond Network
- * @dev A decentralized platform for issuing, trading, and managing digital bonds
- */
-contract Project {
-    
-    struct Bond {
-        uint256 bondId;
-        address issuer;
-        string bondName;
-        uint256 faceValue;
-        uint256 maturityDate;
-        uint256 couponRate; // in basis points (e.g., 500 = 5%)
+in basis points (e.g., 500 = 5%)
         uint256 totalSupply;
         uint256 availableSupply;
         bool isActive;
@@ -26,13 +11,7 @@ contract Project {
         uint256 lastCouponClaim;
     }
     
-    // State variables
-    uint256 private bondCounter;
-    mapping(uint256 => Bond) public bonds;
-    mapping(address => mapping(uint256 => Investment)) public investments;
-    mapping(uint256 => mapping(address => bool)) public bondInvestors;
-    
-    // Events
+    Events
     event BondIssued(
         uint256 indexed bondId,
         address indexed issuer,
@@ -109,10 +88,7 @@ contract Project {
         uint256 totalCost = bond.faceValue * _amount;
         require(msg.value >= totalCost, "Insufficient payment");
         
-        // Update bond supply
-        bond.availableSupply -= _amount;
-        
-        // Record investment
+        Record investment
         if (investments[msg.sender][_bondId].amount == 0) {
             investments[msg.sender][_bondId] = Investment({
                 bondId: _bondId,
@@ -125,10 +101,7 @@ contract Project {
             investments[msg.sender][_bondId].amount += _amount;
         }
         
-        // Transfer payment to issuer
-        payable(bond.issuer).transfer(totalCost);
-        
-        // Refund excess payment
+        Refund excess payment
         if (msg.value > totalCost) {
             payable(msg.sender).transfer(msg.value - totalCost);
         }
@@ -151,14 +124,7 @@ contract Project {
         uint256 timeElapsed = block.timestamp - investment.lastCouponClaim;
         require(timeElapsed >= 30 days, "Coupon claim period not reached");
         
-        // Calculate coupon payment (simplified monthly calculation)
-        uint256 annualCoupon = (investment.amount * bond.faceValue * bond.couponRate) / 10000;
-        uint256 monthsElapsed = timeElapsed / 30 days;
-        uint256 couponPayment = (annualCoupon * monthsElapsed) / 12;
-        
-        investment.lastCouponClaim = block.timestamp;
-        
-        // Transfer coupon payment from issuer
+        Transfer coupon payment from issuer
         payable(msg.sender).transfer(couponPayment);
         
         emit CouponClaimed(_bondId, msg.sender, couponPayment);
@@ -216,3 +182,6 @@ contract Project {
         return bondCounter;
     }
 }
+// 
+End
+// 
